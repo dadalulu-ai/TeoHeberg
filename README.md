@@ -6,14 +6,25 @@
 
 ---
 
+## ✨ 最新优化（v2.0）
+
+- ⚡ **降低子请求消耗**：单次最多执行 3 轮广告，定时任务每次只处理 1 个可执行账号，避免触发 Cloudflare Workers 免费计划限制  
+- 🧠 **智能冷却机制**：  
+  - 广告成功后冷却 24.5 小时  
+  - 当一个账号额度用完时，设置短期冷却2小时，但之后广告成功，则切换到24.5小时冷却。（避免频繁无效请求）  
+- 📊 **积分估算**：直接通过前后积分差值计算完成广告数，无需额外页面解析  
+- 🖥️ **前端增强**：管理面板显示冷却状态、剩余冷却时间，自动禁用冷却中账号的执行按钮  
+
+---
+
 ## 📌 功能说明
 
 - ✅ 自动完成每日广告任务  
 - ✅ 多账号管理，支持批量导入  
 - ✅ 积分提取，Telegram 通知展示积分变化  
 - ✅ 支持手动触发（网页管理面板 / API）  
-- ✅ 支持定时 Cron 触发  
-- ✅ 前端界面支持账号增删、Cookie 手动更新、单账号执行  
+- ✅ 支持定时 Cron 触发（建议每 5 分钟）  
+- ✅ 前端界面支持账号增删、Cookie 手动更新、单账号执行、强制执行  
 - ✅ 完整 API 接口，可集成到其他自动化流程  
 
 ---
@@ -120,13 +131,13 @@ admin@gmail.com-----remember_web_59ba3xxx89d=eyJpdiI6xxxiIn0%3D
 
 ## ⏰ 定时任务（Cron）
 
-在 Worker 的 **Triggers** 中添加 Cron 触发器，例如：
+在 Worker 的 **Triggers** 中添加 Cron 触发器，**建议每 5 分钟执行一次**，例如：
 
 ```
-0 0 * * *
+*/5 * * * *
 ```
 
-> 表示每天 UTC 0:00（北京时间 8:00）自动执行一次所有账号的广告任务。
+> 含义：每隔 30 分钟自动触发一次，脚本会自动检测冷却状态，只处理可执行的账号（最多 1 个/次），完全安全且不会浪费子请求。
 
 ---
 
@@ -137,28 +148,30 @@ admin@gmail.com-----remember_web_59ba3xxx89d=eyJpdiI6xxxiIn0%3D
 直接访问 Worker 域名，输入 `AUTH_KEY` 即可进入管理界面：
 
 ```
-https://你的域名/workers.dev
+https://你的域名
 ```
 
 **功能包括**：
-- 📊 查看账号列表和统计  
+- 📊 查看账号列表、可执行账号数量和冷却状态  
 - ✏️ 批量添加账号  
 - 🗑️ 删除账号  
-- ▶️ 手动执行单个账号  
-- 🔄 手动执行所有账号  
+- ▶️ 手动执行单个账号（忽略冷却）  
+- 🔄 手动执行所有可用账号（跳过冷却中的）  
 - 🍪 弹窗手动更新 Cookie  
 
 ### 2️⃣ API 触发单个账号
 
 ```bash
-curl "https://你的域名/workers.dev/run?email=admin@example.com&key=你的AUTH_KEY"
+curl "https://你的域名/run?email=admin@example.com&key=你的AUTH_KEY&force=true"
 ```
+> 添加 `force=true` 可强制忽略冷却，立即执行。
 
 ### 3️⃣ API 触发所有账号
 
 ```bash
 curl "https://你的域名/run-all?key=你的AUTH_KEY"
 ```
+> 自动跳过冷却中的账号，每次只处理一个。
 
 ### 4️⃣ 查看账号列表
 
@@ -179,7 +192,8 @@ curl "https://你的域名/accounts?key=你的AUTH_KEY"
 
 账号：admin@example.com
 积分：0,00 -> 6,00
-广告：执行 3 次
+广告：完成 3 次
+下次执行：2026/5/5 12:30:00
 
 TeoHeberg Daily Points
 ```
@@ -196,6 +210,18 @@ TeoHeberg Daily Points
 TeoHeberg Daily Points
 ```
 
+**Cookie 失效时**：
+
+```
+🚨 Cookie 已失效
+
+账号：admin@example.com
+状态：remember_web 已失效，需要手动更新
+⚠️ 请尽快手动更新长期 Cookie
+
+TeoHeberg Daily Points
+```
+
 ---
 
 ## 💬 Telegram 通知说明
@@ -203,7 +229,7 @@ TeoHeberg Daily Points
 配置 `TELEGRAM_BOT_TOKEN` 和 `TELEGRAM_CHAT_ID` 后：
 
 - ✅ 每次任务执行完毕自动推送积分变化  
-- ✅ 额度已用完时提示冷却  
+- ✅ 额度已用完时提示冷却（并显示下次可执行时间）  
 - ❌ 遇到 Cookie 失效、网络错误等会推送错误信息  
 
 ---
