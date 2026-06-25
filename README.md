@@ -67,6 +67,8 @@
 
 3. 工作流文件已包含（位于 `.github/workflows/teoheberg-renew.yml`），默认 cron 为北京时间每天 08:28。  
    - 手动触发：Actions → “TeoHeberg 续期” → Run workflow。
+  
+> 📌 通知：![通知](img/TeoHeberg.png)
 
 #### 工作流核心步骤概览
 
