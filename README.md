@@ -109,9 +109,11 @@
 
 ### 部署方式（Cloudflare Workers）
 
-1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)，进入 Workers 页面。  
-2. 创建新的 Worker，将仓库中的 `worker.js` 代码粘贴进去（或直接通过 Wrangler 部署）。  
-3. 创建 **KV 命名空间**（名称随意），在 Worker 设置 → Variables → KV Namespace Bindings 中绑定：
+1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)，进入 Workers 页面  
+2. 创建一个新的 Worker，将 [worker.js](./worker.js) 代码粘贴进去  
+3. 创建 **KV 命名空间**（名称随意），在 Worker 设置中绑定变量名为 `TEOHEBERG_KV`  
+4. 配置环境变量（见下表）  
+5. 部署 Worker  
 
    | 变量名 | KV 命名空间 |
    |--------|------------|
