@@ -33,6 +33,7 @@ jobs:
 
       - name: 启用 WARP
         uses: fscarmen/warp-on-actions@v1.3
+        timeout-minutes: 5  # 防止该步骤卡住耗尽整个 job 的时间，超时会自动失败并进入下一次重试
         with:
           stack: dual
           mode: client
